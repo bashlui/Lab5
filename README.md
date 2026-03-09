@@ -1,71 +1,127 @@
-# Getting Started with Create React App
+# Lab5 – Reto Banorte
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+CRUD de proyectos (Generador de Requerimientos): frontend en React y API en Node.js con base de datos PostgreSQL.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## Requisitos
 
-### `npm start`
+- **Node.js** (v16 o superior)
+- **PostgreSQL** instalado y corriendo
+- **npm** (incluido con Node)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 1. Setup de base de datos (PostgreSQL local)
 
-### `npm test`
+### 1.1 Crear la base de datos
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Abre una terminal y conéctate a PostgreSQL con el usuario que uses (por ejemplo `postgres`):
 
-### `npm run build`
+```bash
+psql -U postgres
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+Dentro de `psql`, crea la base de datos:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```sql
+CREATE DATABASE acme;
+\q
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+(Si ya tienes la base `acme`, omite este paso.)
 
-### `npm run eject`
+### 1.2 Crear la tabla e insertar datos
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Ejecuta el script `init.sql` contra la base `acme`. Ajusta `-U` (usuario) y `-p` (puerto) según tu instalación:
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+psql -U postgres -d acme -f project-api-postgres/init.sql
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Si PostgreSQL usa otro puerto (por ejemplo 5445):
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+psql -U postgres -p 5445 -d acme -f project-api-postgres/init.sql
+```
 
-## Learn More
+Eso crea la tabla `proyectos` (id, nombre, descripcion) e inserta datos por defecto.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### 1.3 Configurar variables de entorno de la API
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+En la carpeta `project-api-postgres` hay un archivo `.env`. Ajusta los valores a tu PostgreSQL local:
 
-### Code Splitting
+```env
+PORT=5001
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=tu_contraseña
+DB_NAME=acme
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **DB_PORT:** el puerto donde escucha PostgreSQL (por defecto `5432`).
+- **DB_NAME:** debe ser la base donde ejecutaste `init.sql` (por ejemplo `acme`).
 
-### Analyzing the Bundle Size
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+## 2. Correr la API
 
-### Making a Progressive Web App
+Desde la raíz del proyecto:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+```bash
+cd project-api-postgres
+npm install
+npm run dev
+```
 
-### Advanced Configuration
+Deberías ver algo como:  
+`API de proyectos (Lab5 - Banorte) en http://localhost:5001`
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Para probar en el navegador:
 
-### Deployment
+- [http://localhost:5001/api](http://localhost:5001/api) — información de la API
+- [http://localhost:5001/api/proyectos](http://localhost:5001/api/proyectos) — listado de proyectos (JSON)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+Deja esta terminal abierta mientras usas la aplicación.
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-# Lab5
+## 3. Correr la página (frontend)
+
+En **otra** terminal, desde la raíz del proyecto:
+
+```bash
+npm install
+npm start
+```
+
+Se abrirá el navegador en [http://localhost:3000](http://localhost:3000). La app consumirá la API en `http://localhost:5001/api` por defecto.
+
+Si tu API corre en otra URL o puerto, crea un archivo `.env` en la **raíz del proyecto** (junto a `package.json`) con:
+
+```env
+REACT_APP_API_URL=http://localhost:5001/api
+```
+
+Luego vuelve a ejecutar `npm start`.
+
+---
+
+## Resumen rápido
+
+| Paso | Comando / acción |
+|------|-------------------|
+| 1. Crear BD | `psql -U postgres` → `CREATE DATABASE acme;` |
+| 2. Ejecutar script | `psql -U postgres -d acme -f project-api-postgres/init.sql` |
+| 3. Configurar API | Editar `project-api-postgres/.env` (DB_*, PORT) |
+| 4. Iniciar API | `cd project-api-postgres && npm run dev` |
+| 5. Iniciar frontend | Desde la raíz: `npm start` |
+
+---
+
+## Scripts del frontend (Create React App)
+
+- **`npm start`** — modo desarrollo en [http://localhost:3000](http://localhost:3000)
+- **`npm test`** — ejecutar tests
+- **`npm run build`** — build de producción en la carpeta `build`
